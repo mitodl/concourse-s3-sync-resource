@@ -26,11 +26,19 @@ options=$(echo "$payload" | jq -r '.source.options // [] | join(" ")')
 AWS_ACCESS_KEY_ID=$(echo "$payload" | jq -r '.source.access_key_id // empty')
 AWS_SECRET_ACCESS_KEY=$(echo "$payload" | jq -r '.source.secret_access_key // empty')
 AWS_DEFAULT_REGION=$(echo "$payload" | jq -r '.source.region // empty')
+AWS_ENDPOINT_URL=$(echo "$payload" | jq -r '.source.endpoint_url // empty')
 
 # Due to precedence rules, must be unset to support AWS IAM Roles.
 if [ -n "$AWS_ACCESS_KEY_ID" ] && [ -n "$AWS_SECRET_ACCESS_KEY" ]; then
   export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
   export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+fi
+
+# If AWS_ENDPOINT_URL is set, format an argument to use it
+if [ -n "$AWS_ENDPOINT_URL" ]; then
+  export AWS_ENDPOINT_URL_ARG=" --endpoint-url $AWS_ENDPOINT_URL"
+else
+  export AWS_ENDPOINT_URL_ARG=""
 fi
 
 # Export AWS_DEFAULT_REGION if set
@@ -52,8 +60,8 @@ if [ -n "$directory" ]; then
 fi
 
 echo "Uploading to S3..."
-echo "aws s3 sync $sync_path \"s3://$bucket/$path\" $options"
-aws s3 sync $sync_path "s3://$bucket/$path" $options
+echo "aws s3$AWS_ENDPOINT_URL_ARG sync $sync_path \"s3://$bucket/$path\" $options"
+aws s3$AWS_ENDPOINT_URL_ARG sync $sync_path "s3://$bucket/$path" $options
 echo "...done."
 
 # Output Link to Coverage Report
@@ -62,7 +70,7 @@ if [ -n "$path" ]; then
   prefix="$path/index.html"
 fi
 
-index_versions=$(aws s3api list-object-versions --bucket $bucket --prefix ${prefix})
+index_versions=$(aws s3api$AWS_ENDPOINT_URL_ARG list-object-versions --bucket $bucket --prefix ${prefix})
 version_id=$(echo $index_versions | jq -r '.Versions[0].VersionId')
 key=$(echo $index_versions | jq -r '.Versions[0].Key')
 url="https://s3-$AWS_DEFAULT_REGION.amazonaws.com/$bucket/$key?versionId=$version_id"

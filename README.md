@@ -16,7 +16,7 @@ resources:
   source:
     access_key_id: {{aws-access-key}}
     secret_access_key: {{aws-secret-key}}
-    endpoint_url: [<optional>, specifies the URL to send the request to]
+    endpoint: [<optional>, specifies the URL to send the request to]
     directory: [<optional>, use to sync to a specific path of the resource instead of the default working directory OR a specific path of the source bucket instead of root of bucket (if 'source_bucket' also specified)]
     bucket: {{aws-bucket}}
     source_bucket: [<optional>, use to sync from a s3 bucket instead of a path of the resource]

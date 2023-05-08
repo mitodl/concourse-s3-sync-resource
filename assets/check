@@ -13,7 +13,7 @@ prefix="$(echo "$payload" | jq -r '.source.path // ""')"
 AWS_ACCESS_KEY_ID=$(echo "$payload" | jq -r '.source.access_key_id // empty')
 AWS_SECRET_ACCESS_KEY=$(echo "$payload" | jq -r '.source.secret_access_key // empty')
 AWS_DEFAULT_REGION=$(echo "$payload" | jq -r '.source.region // empty')
-AWS_ENDPOINT_URL=$(echo "$payload" | jq -r '.source.endpoint_url // empty')
+AWS_ENDPOINT_URL=$(echo "$payload" | jq -r '.source.endpoint // empty')
 
 # Due to precedence rules, must be unset to support AWS IAM Roles.
 if [ -n "$AWS_ACCESS_KEY_ID" ] && [ -n "$AWS_SECRET_ACCESS_KEY" ]; then

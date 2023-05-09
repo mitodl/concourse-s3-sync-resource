@@ -20,10 +20,18 @@ if [ -n "$AWS_ACCESS_KEY_ID" ] && [ -n "$AWS_SECRET_ACCESS_KEY" ]; then
   export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
 fi
 
+# If endpoint is set, format an argument to use it
+MANUAL_ENDPOINT_URL=$(echo "$payload" | jq -r '.source.endpoint // empty')
+if [ -n "$MANUAL_ENDPOINT_URL" ]; then
+  endpoint_url_arg=" --endpoint-url $MANUAL_ENDPOINT_URL"
+else
+  endpoint_url_arg=""
+fi
+
 # Export AWS_DEFAULT_REGION if set
 [ -n "$AWS_DEFAULT_REGION" ] && export AWS_DEFAULT_REGION
 
 # Consider the most recent LastModified timestamp as the most recent version.
-timestamps=$(aws s3api list-objects --bucket $bucket --prefix "$prefix" --query 'Contents[].{LastModified: LastModified}')
+timestamps=$(aws s3api$endpoint_url_arg list-objects --bucket $bucket --prefix "$prefix" --query 'Contents[].{LastModified: LastModified}')
 recent="$(echo $timestamps | jq -r 'max_by(.LastModified)')"
 echo "[$recent]"
